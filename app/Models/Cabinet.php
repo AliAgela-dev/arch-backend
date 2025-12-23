@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
+class Cabinet extends Model
+{
+    protected $fillable = [
+        'id',
+        'room_id',
+        'name',
+        'position_x',
+        'position_y',
+        'drawer_count',
+        'status',
+    ];
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class, 'room_id', 'id');
+    }
+
+    public function drawers()
+    {
+        return $this->hasMany(Drawer::class, 'cabinet_id', 'id');
+    }
+
+    protected $keyType = 'string';
+    public $incrementing = false;
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->id = $model->id ?? (string) Str::uuid();
+        });
+    }
+}
