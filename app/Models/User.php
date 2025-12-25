@@ -15,7 +15,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens ,HasUuids ,HasRoles;
+    use HasFactory, Notifiable, HasApiTokens, HasUuids, HasRoles;
     /**
      * The attributes that are mass assignable.
      *
@@ -30,6 +30,7 @@ class User extends Authenticatable
         'email',
         'password',
         'status',
+        'last_login',
     ];
 
     /**
@@ -53,6 +54,24 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'status' => UserStatus::class,
+            'last_login' => 'datetime',
         ];
+    }
+
+    public function assignRoleWithHierarchy(string $roleName): void
+    {
+        $rolesToSync = match ($roleName) {
+            UserRole::super_admin->value => [
+                UserRole::super_admin->value,
+                UserRole::archivist->value,
+                UserRole::faculty_staff->value
+            ],
+            UserRole::archivist->value => [
+                UserRole::archivist->value,
+                UserRole::faculty_staff->value
+            ],
+            default => [$roleName],
+        };
+        $this->syncRoles($rolesToSync);
     }
 }

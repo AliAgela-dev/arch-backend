@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UserStoreRequest;
 use App\Http\Requests\User\UserUpdateRequest;
-use App\Http\Resources\User\UserResourse;
+use App\Http\Resources\User\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -21,15 +21,20 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $request->validate([
+            'filter.name' => ['sometimes', 'string', 'max:255'],
+            'filter.email' => ['sometimes', 'string', 'email', 'max:255'],
+            'sort' => ['sometimes', 'string', 'in:name,email,created_at,-name,-email,-created_at'],
+        ]);
 
         $users = QueryBuilder::for(User::class)
             ->allowedFilters(['name', 'email'])
             ->allowedSorts(['name', 'email', 'created_at'])
             ->paginate(10)
             ->withQueryString();
-        return UserResourse::collection($users)->response()->setStatusCode(200);
+        return UserResource::collection($users);
     }
 
     /**
@@ -39,10 +44,10 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $user = User::create($data);
-        $user->assignRole($data['role']);
+        $user->assignRoleWithHierarchy($data['role']);
         $user->refresh();
         $user->load('roles');
-        return (new UserResourse($user))->additional([
+        return (new UserResource($user))->additional([
             'message' => 'User created successfully.'
         ])->response()->setStatusCode(201);
     }
@@ -52,7 +57,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return (new UserResourse($user))->response()->setStatusCode(200);
+        return (new UserResource($user));
     }
 
     /**
@@ -64,15 +69,15 @@ class UserController extends Controller
         $user->update($data);
 
         if (isset($data['role'])) {
-            $user->syncRoles($data['role']);
+            $user->assignRoleWithHierarchy($data['role']);
         }
 
         $user->refresh();
         $user->load('roles');
 
-        return (new UserResourse($user))->additional([
+        return (new UserResource($user))->additional([
             'message' => 'User updated successfully.'
-        ])->response()->setStatusCode(200);
+        ]);
     }
 
     /**
@@ -83,6 +88,6 @@ class UserController extends Controller
         $user->delete();
         return response()->json([
             'message' => 'User deleted successfully.'
-        ], 200);
+        ]);
     }
 }

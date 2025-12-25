@@ -5,8 +5,7 @@ namespace App\Http\Controllers\auth;
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Requests\Auth\registerRequest;
-use App\Http\Resources\User\UserResourse;
+use App\Http\Resources\User\UserResource;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -36,10 +35,10 @@ class AuthController extends Controller
         $user->update(['last_login' => now()]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
-        return (new UserResourse($user))->additional([
+        return (new UserResource($user))->additional([
             'token' => $token,
             'message' => 'User logged in successfully.'
-        ])->response()->setStatusCode(200);
+        ]);
     }
 
     public function logout(Request $request)
