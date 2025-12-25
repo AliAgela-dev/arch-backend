@@ -16,7 +16,6 @@ return new class extends Migration
             $table->uuid('cabinet_id');
             $table->integer('number');
             $table->string('label', 50)->nullable();
-            ///
             $table->integer('capacity')->default(100);
             $table->enum('status', ['active', 'inactive']);
             $table->timestamps();

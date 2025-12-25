@@ -7,13 +7,15 @@ use Illuminate\Support\Str;
 
 class Cabinet extends Model
 {
+    // Fixed number of drawers each cabinet should have.
+    public const DRAWER_COUNT = 4;
+
     protected $fillable = [
         'id',
         'room_id',
         'name',
         'position_x',
         'position_y',
-        'drawer_count',
         'status',
     ];
 
@@ -36,4 +38,6 @@ class Cabinet extends Model
             $model->id = $model->id ?? (string) Str::uuid();
         });
     }
+
+    
 }

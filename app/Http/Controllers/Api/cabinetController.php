@@ -31,86 +31,164 @@ class CabinetController extends Controller
             'name'         => 'required|string|max:255',
             'position_x'   => 'required|numeric',
             'position_y'   => 'required|numeric',
-            'drawer_count' => 'nullable|integer|in:4',
-            'status'       => 'required|in:active,inactive',]);
+            // Drawer count is server-managed; clients must not send it.
+            'drawer_count' => 'prohibited',
+            'status'       => 'required|in:active,inactive',
+        ]);
 
         $cabinet = DB::transaction(function () use ($input, $hierarchy) {
 
-        // 1) Create cabinet row
-        $cabinet = Cabinet::create($input);
+            // 1) Create cabinet row
+            $cabinet = Cabinet::create($input);
 
-        // 2) Closure table: cabinet self row (cabinet -> cabinet, depth 0)
-        $hierarchy->insertSelf($cabinet->id, 'cabinet');
+            // 2) Closure table: cabinet self row (cabinet -> cabinet, depth 0)
+            $hierarchy->insertSelf($cabinet->id, 'cabinet');
 
-        // 3) Closure table: link Room -> Cabinet
-        $hierarchy->linkParentChild(
-            $cabinet->room_id,
-            'room',
-            $cabinet->id,
-            'cabinet');
-
-        // -------- Task 2 starts here: auto-generate drawers --------
-        $drawerCount = 4;
-        // If the requirement is always 4, force it:
-        // $drawerCount = 4;
-
-        for ($i = 1; $i <= $drawerCount; $i++) {
-            // Create drawer
-            $drawer = Drawer::create([
-                'cabinet_id' => $cabinet->id,
-                'number'     => $i,
-                'capacity'   => 100,
-                'status'     => 'active',
-                // 'label'    => null, // optional if your migration has it
-            ]);
-
-            // Closure table: drawer self
-            $hierarchy->insertSelf($drawer->id, 'drawer');
-
-            // Closure table: link Cabinet -> Drawer
-            // This also creates Room -> Drawer automatically if your service
-            // uses cabinet ancestors (which include the room).
+            // 3) Closure table: link Room -> Cabinet
             $hierarchy->linkParentChild(
+                $cabinet->room_id,
+                'room',
                 $cabinet->id,
-                'cabinet',
-                $drawer->id,
-                'drawer'
-            );
-        }
-        // -------- Task 2 ends here --------
+                'cabinet');
 
-        return $cabinet; });
+            // here: auto-generate drawers --------
+            $drawerCount = 4;
+
+            for ($i = 1; $i <= $drawerCount; $i++) {
+                // Create drawer
+                $drawer = Drawer::create([
+                    'cabinet_id' => $cabinet->id,
+                    'number'     => $i,
+                    'capacity'   => 100,
+                    'status'     => 'active',
+                ]);
+
+                // Closure table: drawer self
+                $hierarchy->insertSelf($drawer->id, 'drawer');
+
+                // Closure table: link Cabinet -> Drawer
+                // This also creates Room -> Drawer automatically if your service
+                // uses cabinet ancestors (which include the room).
+                $hierarchy->linkParentChild(
+                    $cabinet->id,
+                    'cabinet',
+                    $drawer->id,
+                    'drawer'
+                );
+            }
+
+            return $cabinet;
+        });
 
         $cabinet->load('drawers');
 
         return response()->json([
-            'message' => 'Cabinet created successfully'], 201);
-        }
-        /**
-         * Display the specified resource.
-         */
-        public function show(string $id)
-        {
-            $cabinet=Cabinet::with('drawers')->findOrFail($id);
-            return response()->json($cabinet);
-        }
+            'message' => 'Cabinet created successfully',
+            'cabinet' => $cabinet,
+        ], 201);
+    }
 
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $cabinet=Cabinet::with('drawers')->findOrFail($id);
+        return response()->json($cabinet);
+    }
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id, LocationHierarchyService $hierarchy)
     {
         $input = $request->validate([
-            'room_id' => 'sometimes|required|string|exists:rooms,id',
-            'name' => 'sometimes|required|string|max:255',
-            'position_x' => 'sometimes|required|numeric',
-            'position_y' => 'sometimes|required|numeric',
-            'drawer_count' => 'sometimes|required|integer|min:0',
-            'status' => 'sometimes|required|in:active,inactive',
+            'room_id'      => 'sometimes|required|string|exists:rooms,id',
+            'name'         => 'sometimes|required|string|max:255',
+            'position_x'   => 'sometimes|required|numeric',
+            'position_y'   => 'sometimes|required|numeric',
+            // Drawer count is server-managed; clients must not send it.
+            'drawer_count' => 'prohibited',
+            'status'       => 'sometimes|required|in:active,inactive',
         ]);
-        $cabinet = Cabinet::findOrFail($id);
-        $cabinet->update($input);
-        return response()->json(['message' => 'Cabinet updated successfully']);
+
+        $cabinet = Cabinet::with('drawers')->findOrFail($id);
+
+        // Disallow changing room_id here (moving needs closure-table rebuild logic)
+        if (array_key_exists('room_id', $input) && $input['room_id'] !== $cabinet->room_id) {
+            return response()->json([
+                'message' => 'Changing room_id is not supported via update() without move logic.',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($input, $cabinet, $hierarchy) {
+
+            // Update cabinet fields (no drawer_count handling needed now)
+            $updateData = $input;
+
+            if (!empty($updateData)) {
+                $cabinet->update($updateData);
+            }
+
+            
+            $drawerCount = 4;
+
+            // Delete extra drawers (> canonical count)
+            $toDeleteIds = $cabinet->drawers()
+                ->where('number', '>', $drawerCount)
+                ->pluck('id');
+
+            if ($toDeleteIds->isNotEmpty()) {
+                DB::table('drawers')->whereIn('id', $toDeleteIds)->delete();
+
+                // Delete closure-table rows where these drawers appear as descendant OR ancestor.
+                DB::table('location_hierarchies')
+                    ->where(function ($q) use ($toDeleteIds) {
+                        $q->where(function ($qq) use ($toDeleteIds) {
+                            $qq->whereIn('descendant_id', $toDeleteIds)
+                               ->where('descendant_type', 'drawer');
+                        })->orWhere(function ($qq) use ($toDeleteIds) {
+                            $qq->whereIn('ancestor_id', $toDeleteIds)
+                               ->where('ancestor_type', 'drawer');
+                        });
+                    })
+                    ->delete();
+            }
+
+            // Create missing drawers (ensure 1..4 exist)
+            $existingNumbers = $cabinet->drawers()->pluck('number')->map(fn ($n) => (int) $n)->all();
+            $existingNumbers = array_flip($existingNumbers);
+
+            for ($i = 1; $i <= $drawerCount; $i++) {
+                if (isset($existingNumbers[$i])) {
+                    continue;
+                }
+
+                $drawer = Drawer::create([
+                    'cabinet_id' => $cabinet->id,
+                    'number'     => $i,
+                    'capacity'   => 100,
+                    'status'     => 'active',
+                ]);
+
+                // Closure table: drawer self
+                $hierarchy->insertSelf($drawer->id, 'drawer');
+
+                // Closure table: link Cabinet -> Drawer
+                $hierarchy->linkParentChild(
+                    $cabinet->id,
+                    'cabinet',
+                    $drawer->id,
+                    'drawer'
+                );
+            }
+        });
+
+        $cabinet->load('drawers');
+
+        return response()->json([
+            'message' => 'Cabinet updated successfully',
+            'cabinet' => $cabinet,
+        ]);
     }
 
         /**

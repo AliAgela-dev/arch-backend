@@ -34,8 +34,6 @@ return new class extends Migration
             // Indexes for fast ancestor/descendant lookups
             $table->index(['ancestor_id', 'ancestor_type'], 'lh_ancestor_idx');
             $table->index(['descendant_id', 'descendant_type'], 'lh_descendant_idx');
-
-            // Optional timestamps to track when a relation was created
             $table->timestamps();
         });
     }
