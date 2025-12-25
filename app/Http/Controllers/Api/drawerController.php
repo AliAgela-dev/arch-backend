@@ -81,14 +81,12 @@ class DrawerController extends Controller
             'cabinet_id' => 'sometimes|required|string|exists:cabinets,id',
             'number'     => 'sometimes|required|integer|min:1',
             'label'      => 'sometimes|nullable|string|max:50',
-            'capacity'   => 'sometimes|nullable|integer|min:0',
+            'capacity'   => 'sometimes|required|integer|min:1',
             'status'     => 'sometimes|required|in:active,inactive',
         ]);
 
         $drawer = Drawer::findOrFail($id);
 
-        // Important: if you allow cabinet_id changes, you must also update closure-table paths.
-        // For now, keep it simple: DO NOT change cabinet_id through update unless you also implement "move" logic.
         if (array_key_exists('cabinet_id', $input) && $input['cabinet_id'] !== $drawer->cabinet_id) {
             return response()->json([
                 'message' => 'Changing cabinet_id is not supported via update() without move logic.',
@@ -97,7 +95,10 @@ class DrawerController extends Controller
 
         $drawer->update($input);
 
-        return response()->json(['message' => 'Drawer updated successfully']);
+        return response()->json([
+            'message' => 'Drawer updated successfully',
+            'data'    => $drawer->fresh(), 
+        ]);
     }
 
     /**

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Cabinet;
 use Illuminate\Support\Str;
 
 class Drawer extends Model
@@ -18,20 +17,46 @@ class Drawer extends Model
         'status',
     ];
 
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     public function cabinet(): BelongsTo
     {
         return $this->belongsTo(Cabinet::class, 'cabinet_id', 'id');
     }
 
-    protected $keyType = 'string';
-    public $incrementing = false;
-
     protected static function booted()
     {
+        // Our IDs are UUID strings, so we generate them at creation time.
         static::creating(function ($model) {
             $model->id = $model->id ?? (string) Str::uuid();
         });
     }
 
-    
+    public function usagePercent(int $currentCount = 0): int
+    {
+        //currentCount is 0 for now until files are implemented.
+        $capacity = (int) ($this->capacity ?? 0);
+        if ($capacity <= 0) return 0;
+
+        return (int) round(($currentCount / $capacity) * 100);
+    }
+
+    public function capacityColor(int $currentCount = 0): string
+    {
+        $percent = $this->usagePercent($currentCount);
+
+        if ($percent >= 95) return 'red';
+        if ($percent >= 80) return 'yellow';
+        return 'green';
+    }
+
+    public function capacityStatus(int $currentCount = 0): string
+    {
+        $percent = $this->usagePercent($currentCount);
+
+        if ($percent >= 95) return 'critical';
+        if ($percent >= 80) return 'warning';
+        return 'normal';
+    }
 }
