@@ -83,36 +83,36 @@ class RoomController extends Controller
                 ->get(['descendant_id', 'descendant_type']);
 
             // Split by type
-            $cabinetIds = $descendants->where('descendant_type', 'cabinet')->pluck('descendant_id')->unique()->values();
-            $drawerIds  = $descendants->where('descendant_type', 'drawer')->pluck('descendant_id')->unique()->values();
+            $cabinet_ids = $descendants->where('descendant_type', 'cabinet')->pluck('descendant_id')->unique()->values();
+            $drawer_ids  = $descendants->where('descendant_type', 'drawer')->pluck('descendant_id')->unique()->values();
 
             // 2) Delete domain data (children first)
-            if ($drawerIds->isNotEmpty()) {
-                DB::table('drawers')->whereIn('id', $drawerIds)->delete();
+            if ($drawer_ids->isNotEmpty()) {
+                DB::table('drawers')->whereIn('id', $drawer_ids)->delete();
             }
 
-            if ($cabinetIds->isNotEmpty()) {
-                DB::table('cabinets')->whereIn('id', $cabinetIds)->delete();
+            if ($cabinet_ids->isNotEmpty()) {
+                DB::table('cabinets')->whereIn('id', $cabinet_ids)->delete();
             }
 
             DB::table('rooms')->where('id', $id)->delete();
 
             // 3) Delete ALL hierarchy rows that involve this room subtree
-            $allNodePairs = collect()
+            $all_node_pairs = collect()
                 ->push(['id' => $id, 'type' => 'room'])
                 ->merge($descendants->map(fn ($d) => ['id' => $d->descendant_id, 'type' => $d->descendant_type]));
 
             DB::table('location_hierarchies')
-                ->where(function ($q) use ($allNodePairs) {
-                    foreach ($allNodePairs as $node) {
+                ->where(function ($q) use ($all_node_pairs) {
+                    foreach ($all_node_pairs as $node) {
                         $q->orWhere(function ($qq) use ($node) {
                             $qq->where('ancestor_id', $node['id'])
                                ->where('ancestor_type', $node['type']);
                         });
                     }
                 })
-                ->orWhere(function ($q) use ($allNodePairs) {
-                    foreach ($allNodePairs as $node) {
+                ->orWhere(function ($q) use ($all_node_pairs) {
+                    foreach ($all_node_pairs as $node) {
                         $q->orWhere(function ($qq) use ($node) {
                             $qq->where('descendant_id', $node['id'])
                                ->where('descendant_type', $node['type']);

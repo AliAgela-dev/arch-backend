@@ -97,7 +97,7 @@ class DrawerController extends Controller
 
         return response()->json([
             'message' => 'Drawer updated successfully',
-            'data'    => $drawer->fresh(), 
+            'data'    => $drawer->fresh(),
         ]);
     }
 

@@ -33,27 +33,27 @@ class Drawer extends Model
         });
     }
 
-    public function usagePercent(int $currentCount = 0): int
+    public function usagePercent(int $current_count = 0): int
     {
         //currentCount is 0 for now until files are implemented.
         $capacity = (int) ($this->capacity ?? 0);
         if ($capacity <= 0) return 0;
 
-        return (int) round(($currentCount / $capacity) * 100);
+        return (int) round(($current_count / $capacity) * 100);
     }
 
-    public function capacityColor(int $currentCount = 0): string
+    public function capacityColor(int $current_count = 0): string
     {
-        $percent = $this->usagePercent($currentCount);
+        $percent = $this->usagePercent($current_count);
 
         if ($percent >= 95) return 'red';
         if ($percent >= 80) return 'yellow';
         return 'green';
     }
 
-    public function capacityStatus(int $currentCount = 0): string
+    public function capacityStatus(int $current_count = 0): string
     {
-        $percent = $this->usagePercent($currentCount);
+        $percent = $this->usagePercent($current_count);
 
         if ($percent >= 95) return 'critical';
         if ($percent >= 80) return 'warning';

@@ -52,9 +52,9 @@ class CabinetController extends Controller
                 'cabinet');
 
             // here: auto-generate drawers --------
-            $drawerCount = 4;
+            $drawer_count = 4;
 
-            for ($i = 1; $i <= $drawerCount; $i++) {
+            for ($i = 1; $i <= $drawer_count; $i++) {
                 // Create drawer
                 $drawer = Drawer::create([
                     'cabinet_id' => $cabinet->id,
@@ -93,7 +93,7 @@ class CabinetController extends Controller
      */
     public function show(string $id)
     {
-        $cabinet=Cabinet::with('drawers')->findOrFail($id);
+        $cabinet = Cabinet::with('drawers')->findOrFail($id);
         return response()->json($cabinet);
     }
     /**
@@ -123,31 +123,31 @@ class CabinetController extends Controller
         DB::transaction(function () use ($input, $cabinet, $hierarchy) {
 
             // Update cabinet fields (no drawer_count handling needed now)
-            $updateData = $input;
+            $update_data = $input;
 
-            if (!empty($updateData)) {
-                $cabinet->update($updateData);
+            if (!empty($update_data)) {
+                $cabinet->update($update_data);
             }
 
-            
-            $drawerCount = 4;
+
+            $drawer_count = 4;
 
             // Delete extra drawers (> canonical count)
-            $toDeleteIds = $cabinet->drawers()
-                ->where('number', '>', $drawerCount)
+            $to_delete_ids = $cabinet->drawers()
+                ->where('number', '>', $drawer_count)
                 ->pluck('id');
 
-            if ($toDeleteIds->isNotEmpty()) {
-                DB::table('drawers')->whereIn('id', $toDeleteIds)->delete();
+            if ($to_delete_ids->isNotEmpty()) {
+                DB::table('drawers')->whereIn('id', $to_delete_ids)->delete();
 
                 // Delete closure-table rows where these drawers appear as descendant OR ancestor.
                 DB::table('location_hierarchies')
-                    ->where(function ($q) use ($toDeleteIds) {
-                        $q->where(function ($qq) use ($toDeleteIds) {
-                            $qq->whereIn('descendant_id', $toDeleteIds)
+                    ->where(function ($q) use ($to_delete_ids) {
+                        $q->where(function ($qq) use ($to_delete_ids) {
+                            $qq->whereIn('descendant_id', $to_delete_ids)
                                ->where('descendant_type', 'drawer');
-                        })->orWhere(function ($qq) use ($toDeleteIds) {
-                            $qq->whereIn('ancestor_id', $toDeleteIds)
+                        })->orWhere(function ($qq) use ($to_delete_ids) {
+                            $qq->whereIn('ancestor_id', $to_delete_ids)
                                ->where('ancestor_type', 'drawer');
                         });
                     })
@@ -155,11 +155,11 @@ class CabinetController extends Controller
             }
 
             // Create missing drawers (ensure 1..4 exist)
-            $existingNumbers = $cabinet->drawers()->pluck('number')->map(fn ($n) => (int) $n)->all();
-            $existingNumbers = array_flip($existingNumbers);
+            $existing_numbers = $cabinet->drawers()->pluck('number')->map(fn ($n) => (int) $n)->all();
+            $existing_numbers = array_flip($existing_numbers);
 
-            for ($i = 1; $i <= $drawerCount; $i++) {
-                if (isset($existingNumbers[$i])) {
+            for ($i = 1; $i <= $drawer_count; $i++) {
+                if (isset($existing_numbers[$i])) {
                     continue;
                 }
 
@@ -205,31 +205,31 @@ class CabinetController extends Controller
                     ->where('depth', '>', 0)
                     ->get(['descendant_id', 'descendant_type']);
 
-                $drawerIds = $descendants->where('descendant_type', 'drawer')->pluck('descendant_id')->unique()->values();
+                $drawer_ids = $descendants->where('descendant_type', 'drawer')->pluck('descendant_id')->unique()->values();
 
                 // 2) Delete domain data (drawers first)
-                if ($drawerIds->isNotEmpty()) {
-                    DB::table('drawers')->whereIn('id', $drawerIds)->delete();
+                if ($drawer_ids->isNotEmpty()) {
+                    DB::table('drawers')->whereIn('id', $drawer_ids)->delete();
                 }
 
                 DB::table('cabinets')->where('id', $id)->delete();
 
                 // 3) Clean closure rows for this cabinet subtree (cabinet + its drawers)
-                $allNodePairs = collect()
+                $all_node_pairs = collect()
                     ->push(['id' => $id, 'type' => 'cabinet'])
                     ->merge($descendants->map(fn ($d) => ['id' => $d->descendant_id, 'type' => $d->descendant_type]));
 
                 DB::table('location_hierarchies')
-                    ->where(function ($q) use ($allNodePairs) {
-                        foreach ($allNodePairs as $node) {
+                    ->where(function ($q) use ($all_node_pairs) {
+                        foreach ($all_node_pairs as $node) {
                             $q->orWhere(function ($qq) use ($node) {
                                 $qq->where('ancestor_id', $node['id'])
                                 ->where('ancestor_type', $node['type']);
                             });
                         }
                     })
-                    ->orWhere(function ($q) use ($allNodePairs) {
-                        foreach ($allNodePairs as $node) {
+                    ->orWhere(function ($q) use ($all_node_pairs) {
+                        foreach ($all_node_pairs as $node) {
                             $q->orWhere(function ($qq) use ($node) {
                                 $qq->where('descendant_id', $node['id'])
                                 ->where('descendant_type', $node['type']);
