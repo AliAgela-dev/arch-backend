@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\RoomRequest;
+use App\Http\Resources\RoomResource;
 use App\Models\Room;
 use App\Services\LocationHierarchyService;
 use Illuminate\Support\Facades\DB;
@@ -16,20 +17,16 @@ class RoomController extends Controller
     public function index()
     {
         $rooms = Room::with('cabinets.drawers')->get();
-        return response()->json($rooms);
+        return RoomResource::collection($rooms);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, LocationHierarchyService $hierarchy)
+    public function store(RoomRequest $request, LocationHierarchyService $hierarchy)
     {
-        $input = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'canvas_data' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
-        ]);
+        $input = $request->validated();
+
         $room = DB::transaction(function () use ($input, $hierarchy) {
             $room = Room::create($input);
 
@@ -38,7 +35,10 @@ class RoomController extends Controller
 
             return $room;
         });
-        return response()->json(['message' => 'Room created successfully'], 201);
+        return (new RoomResource($room))
+            ->additional(['message' => 'Room created successfully'])
+            ->response()
+            ->setStatusCode(201);
     }
 
 
@@ -48,24 +48,20 @@ class RoomController extends Controller
     public function show(string $id)
     {
         $room = Room::with('cabinets.drawers')->findOrFail($id);
-        return response()->json($room);
+        return new RoomResource($room);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(RoomRequest $request, string $id)
     {
-        $input = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|nullable|string',
-            'canvas_data' => 'sometimes|nullable|string',
-            'status' => 'sometimes|required|in:active,inactive',
-        ]);
+        $input = $request->validated();
 
         $room = Room::findOrFail($id);
         $room->update($input);
-        return response()->json(['message' => 'Room updated successfully']);
+        return (new RoomResource($room->fresh()->load('cabinets.drawers')))
+            ->additional(['message' => 'Room updated successfully']);
     }
 
     /**

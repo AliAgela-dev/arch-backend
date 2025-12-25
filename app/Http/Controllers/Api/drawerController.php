@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DrawerRequest;
+use App\Http\Resources\DrawerResource;
 use App\Models\Drawer;
 use App\Services\LocationHierarchyService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DrawerController extends Controller
@@ -16,7 +17,7 @@ class DrawerController extends Controller
     public function index()
     {
         $drawers = Drawer::with('cabinet')->get();
-        return response()->json($drawers);
+        return DrawerResource::collection($drawers);
     }
 
     /**
@@ -27,15 +28,9 @@ class DrawerController extends Controller
      * - linkParentChild(cabinet -> drawer)
      * This automatically produces room -> drawer (depth 2) because room is an ancestor of cabinet.
      */
-    public function store(Request $request, LocationHierarchyService $hierarchy)
+    public function store(DrawerRequest $request, LocationHierarchyService $hierarchy)
     {
-        $input = $request->validate([
-            'cabinet_id' => 'required|string|exists:cabinets,id',
-            'number'     => 'required|integer|min:1',
-            'label'      => 'nullable|string|max:50',
-            'capacity'   => 'nullable|integer|min:0',
-            'status'     => 'required|in:active,inactive',
-        ]);
+        $input = $request->validated();
 
         $drawer = DB::transaction(function () use ($input, $hierarchy) {
             // 1) Create drawer
@@ -58,9 +53,10 @@ class DrawerController extends Controller
             return $drawer;
         });
 
-        return response()->json([
-            'message' => 'Drawer created successfully',
-        ], 201);
+        return (new DrawerResource($drawer))
+            ->additional(['message' => 'Drawer created successfully'])
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -69,21 +65,15 @@ class DrawerController extends Controller
     public function show(string $id)
     {
         $drawer = Drawer::with('cabinet')->findOrFail($id);
-        return response()->json($drawer);
+        return new DrawerResource($drawer);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(DrawerRequest $request, string $id)
     {
-        $input = $request->validate([
-            'cabinet_id' => 'sometimes|required|string|exists:cabinets,id',
-            'number'     => 'sometimes|required|integer|min:1',
-            'label'      => 'sometimes|nullable|string|max:50',
-            'capacity'   => 'sometimes|required|integer|min:1',
-            'status'     => 'sometimes|required|in:active,inactive',
-        ]);
+        $input = $request->validated();
 
         $drawer = Drawer::findOrFail($id);
 
@@ -95,10 +85,8 @@ class DrawerController extends Controller
 
         $drawer->update($input);
 
-        return response()->json([
-            'message' => 'Drawer updated successfully',
-            'data'    => $drawer->fresh(),
-        ]);
+        return (new DrawerResource($drawer->fresh()))
+            ->additional(['message' => 'Drawer updated successfully']);
     }
 
     /**

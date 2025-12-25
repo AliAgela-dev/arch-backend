@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CabinetRequest;
+use App\Http\Resources\CabinetResource;
 use App\Models\Cabinet;
-use Illuminate\Http\Request;
 use App\Services\LocationHierarchyService;
 use Illuminate\Support\Facades\DB;
 use App\Models\Drawer;
@@ -18,23 +19,15 @@ class CabinetController extends Controller
     public function index()
     {
         $cabinets = Cabinet::with('drawers')->get();
-        return response()->json($cabinets);
+        return CabinetResource::collection($cabinets);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, LocationHierarchyService $hierarchy)
+    public function store(CabinetRequest $request, LocationHierarchyService $hierarchy)
     {
-        $input = $request->validate([
-            'room_id'      => 'required|string|exists:rooms,id',
-            'name'         => 'required|string|max:255',
-            'position_x'   => 'required|numeric',
-            'position_y'   => 'required|numeric',
-            // Drawer count is server-managed; clients must not send it.
-            'drawer_count' => 'prohibited',
-            'status'       => 'required|in:active,inactive',
-        ]);
+        $input = $request->validated();
 
         $cabinet = DB::transaction(function () use ($input, $hierarchy) {
 
@@ -82,10 +75,10 @@ class CabinetController extends Controller
 
         $cabinet->load('drawers');
 
-        return response()->json([
-            'message' => 'Cabinet created successfully',
-            'cabinet' => $cabinet,
-        ], 201);
+        return (new CabinetResource($cabinet))
+            ->additional(['message' => 'Cabinet created successfully'])
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -94,22 +87,14 @@ class CabinetController extends Controller
     public function show(string $id)
     {
         $cabinet = Cabinet::with('drawers')->findOrFail($id);
-        return response()->json($cabinet);
+        return new CabinetResource($cabinet);
     }
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id, LocationHierarchyService $hierarchy)
+    public function update(CabinetRequest $request, string $id, LocationHierarchyService $hierarchy)
     {
-        $input = $request->validate([
-            'room_id'      => 'sometimes|required|string|exists:rooms,id',
-            'name'         => 'sometimes|required|string|max:255',
-            'position_x'   => 'sometimes|required|numeric',
-            'position_y'   => 'sometimes|required|numeric',
-            // Drawer count is server-managed; clients must not send it.
-            'drawer_count' => 'prohibited',
-            'status'       => 'sometimes|required|in:active,inactive',
-        ]);
+        $input = $request->validated();
 
         $cabinet = Cabinet::with('drawers')->findOrFail($id);
 
@@ -185,10 +170,8 @@ class CabinetController extends Controller
 
         $cabinet->load('drawers');
 
-        return response()->json([
-            'message' => 'Cabinet updated successfully',
-            'cabinet' => $cabinet,
-        ]);
+        return (new CabinetResource($cabinet))
+            ->additional(['message' => 'Cabinet updated successfully']);
     }
 
         /**
