@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\RoomRequest;
+use App\Http\Requests\RoomStoreRequest;
+use App\Http\Requests\RoomUpdateRequest;
 use App\Http\Resources\RoomResource;
 use App\Models\Room;
 use App\Services\LocationHierarchyService;
@@ -23,7 +24,7 @@ class RoomController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(RoomRequest $request, LocationHierarchyService $hierarchy)
+    public function store(RoomStoreRequest $request, LocationHierarchyService $hierarchy)
     {
         $input = $request->validated();
 
@@ -54,7 +55,7 @@ class RoomController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(RoomRequest $request, string $id)
+    public function update(RoomUpdateRequest $request, string $id)
     {
         $input = $request->validated();
 

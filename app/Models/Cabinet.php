@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Enums\Status;
 
 class Cabinet extends Model
 {
@@ -17,6 +18,10 @@ class Cabinet extends Model
         'position_x',
         'position_y',
         'status',
+    ];
+
+     protected $casts = [
+        'status' => Status::class,
     ];
 
     public function room()
@@ -39,5 +44,5 @@ class Cabinet extends Model
         });
     }
 
-    
+   
 }

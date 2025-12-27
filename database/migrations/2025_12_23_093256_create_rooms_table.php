@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name', 255);
             $table->text('description')->nullable();
             $table->json('canvas_data')->nullable();
-            $table->enum('status', ['active', 'inactive']);
+            $table->string('status', 50);
             $table->timestamps();
         });
     }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Enums\Status;
 
 class Room extends Model
 {
@@ -17,6 +18,7 @@ class Room extends Model
 
     protected $casts = [
         'canvas_data' => 'array',
+        'status' => Status::class,
     ];
 
     public function cabinets()

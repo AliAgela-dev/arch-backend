@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('position_x')->nullable();
             $table->integer('position_y')->nullable();
             $table->integer('drawer_count')->default(4);
-            $table->enum('status', ['active', 'inactive']);
+            $table->string('status', 50);
             $table->timestamps();
 
             $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');

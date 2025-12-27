@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use App\Enums\Status;
 
 class Drawer extends Model
 {
@@ -19,6 +20,10 @@ class Drawer extends Model
 
     protected $keyType = 'string';
     public $incrementing = false;
+
+    protected $casts = [
+        'status' => Status::class,
+    ];
 
     public function cabinet(): BelongsTo
     {

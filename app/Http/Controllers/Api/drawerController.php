@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\DrawerRequest;
+use App\Http\Requests\DrawerStoreRequest;
+use App\Http\Requests\DrawerUpdateRequest;
 use App\Http\Resources\DrawerResource;
 use App\Models\Drawer;
 use App\Services\LocationHierarchyService;
@@ -16,7 +17,11 @@ class DrawerController extends Controller
      */
     public function index()
     {
-        $drawers = Drawer::with('cabinet')->get();
+        $perPage = (int) request()->query('per_page', 15);
+        $perPage = max(1, min(100, $perPage));
+
+        $drawers = Drawer::with('cabinet')->paginate($perPage);
+
         return DrawerResource::collection($drawers);
     }
 
@@ -28,7 +33,7 @@ class DrawerController extends Controller
      * - linkParentChild(cabinet -> drawer)
      * This automatically produces room -> drawer (depth 2) because room is an ancestor of cabinet.
      */
-    public function store(DrawerRequest $request, LocationHierarchyService $hierarchy)
+    public function store(DrawerStoreRequest $request, LocationHierarchyService $hierarchy)
     {
         $input = $request->validated();
 
@@ -71,7 +76,7 @@ class DrawerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(DrawerRequest $request, string $id)
+    public function update(DrawerUpdateRequest $request, string $id)
     {
         $input = $request->validated();
 

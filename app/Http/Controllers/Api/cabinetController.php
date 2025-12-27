@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CabinetRequest;
+use App\Http\Requests\CabinetStoreRequest;
+use App\Http\Requests\CabinetUpdateRequest;
 use App\Http\Resources\CabinetResource;
 use App\Models\Cabinet;
 use App\Services\LocationHierarchyService;
@@ -18,14 +19,18 @@ class CabinetController extends Controller
      */
     public function index()
     {
-        $cabinets = Cabinet::with('drawers')->get();
+        $perPage = (int) request()->query('per_page', 15);
+        $perPage = max(1, min(100, $perPage));
+
+        $cabinets = Cabinet::with('drawers')->paginate($perPage);
+
         return CabinetResource::collection($cabinets);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CabinetRequest $request, LocationHierarchyService $hierarchy)
+    public function store(CabinetStoreRequest $request, LocationHierarchyService $hierarchy)
     {
         $input = $request->validated();
 
@@ -45,7 +50,7 @@ class CabinetController extends Controller
                 'cabinet');
 
             // here: auto-generate drawers --------
-            $drawer_count = 4;
+            $drawer_count = Cabinet::DRAWER_COUNT;
 
             for ($i = 1; $i <= $drawer_count; $i++) {
                 // Create drawer
@@ -92,7 +97,7 @@ class CabinetController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(CabinetRequest $request, string $id, LocationHierarchyService $hierarchy)
+    public function update(CabinetUpdateRequest $request, string $id, LocationHierarchyService $hierarchy)
     {
         $input = $request->validated();
 
@@ -115,7 +120,7 @@ class CabinetController extends Controller
             }
 
 
-            $drawer_count = 4;
+            $drawer_count = Cabinet::DRAWER_COUNT;
 
             // Delete extra drawers (> canonical count)
             $to_delete_ids = $cabinet->drawers()

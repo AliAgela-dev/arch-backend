@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('number');
             $table->string('label', 50)->nullable();
             $table->integer('capacity')->default(100);
-            $table->enum('status', ['active', 'inactive']);
+            $table->string('status', 50);
             $table->timestamps();
 
             $table->foreign('cabinet_id')->references('id')->on('cabinets')->onDelete('cascade');
