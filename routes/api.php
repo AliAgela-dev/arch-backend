@@ -10,21 +10,9 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 // Faculty Routes
-Route::prefix('faculties')->group(function () {
-    Route::get('/', [FacultyController::class, 'index']);
-    Route::get('/{id}', [FacultyController::class, 'show']);
-    Route::post('/', [FacultyController::class, 'store']);
-    Route::put('/{id}', [FacultyController::class, 'update']);
-    Route::delete('/{id}', [FacultyController::class, 'destroy']);
-    Route::post('/{id}/restore', [FacultyController::class, 'restore']);
-});
+Route::apiResource('faculties', FacultyController::class);
+Route::post('faculties/{id}/restore', [FacultyController::class, 'restore']);
 
 // Program Routes
-Route::prefix('programs')->group(function () {
-    Route::get('/', [ProgramController::class, 'index']);
-    Route::get('/{id}', [ProgramController::class, 'show']);
-    Route::post('/', [ProgramController::class, 'store']);
-    Route::put('/{id}', [ProgramController::class, 'update']);
-    Route::delete('/{id}', [ProgramController::class, 'destroy']);
-    Route::post('/{id}/restore', [ProgramController::class, 'restore']);
-});
+Route::apiResource('programs', ProgramController::class);
+Route::post('programs/{id}/restore', [ProgramController::class, 'restore']);
