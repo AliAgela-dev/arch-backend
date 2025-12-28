@@ -14,6 +14,14 @@ class FacultyResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return[
+            'id' => $this->id,
+            'code' => $this->code,
+            'name_ar' => $this->name_ar,
+            'name_en' => $this->name_en,
+            'status' => $this->status,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
     }
 }
