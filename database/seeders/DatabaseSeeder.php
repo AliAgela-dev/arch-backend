@@ -25,7 +25,12 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@limu.edu.ly',
             'password' => '123456789',
         ]);
-
         $user->assignRole(UserRole::super_admin);
+        $this->call([
+            FacultySeeder::class,
+            ProgramSeeder::class,
+        ]);
+       
+
     }
 }

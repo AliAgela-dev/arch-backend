@@ -1,14 +1,6 @@
 <?php
-use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
-use Dedoc\Scramble\Scramble;
-use Dedoc\Scramble\Support\Generator\OpenApi;
-use Dedoc\Scramble\Support\Generator\SecurityScheme;
 
-Scramble::extendOpenApi(function (OpenApi $openApi) {
-    $openApi->secure(
-        SecurityScheme::http('bearer', 'JWT')
-    );
-});
+use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
 
 return [
     /*
@@ -110,11 +102,35 @@ return [
      */
     'enum_cases_description_strategy' => 'description',
 
-    'middleware' => array_filter([
+    /**
+     * Determines how Scramble stores the names of enum cases.
+     * Available options:
+     * - 'names' – Case names are stored in the `x-enumNames` enum schema extension.
+     * - 'varnames' - Case names are stored in the `x-enum-varnames` enum schema extension.
+     * - false - Case names are not stored.
+     */
+    'enum_cases_names_strategy' => false,
+
+    /**
+     * When Scramble encounters deep objects in query parameters, it flattens the parameters so the generated
+     * OpenAPI document correctly describes the API. Flattening deep query parameters is relevant until
+     * OpenAPI 3.2 is released and query string structure can be described properly.
+     *
+     * For example, this nested validation rule describes the object with `bar` property:
+     * `['foo.bar' => ['required', 'int']]`.
+     *
+     * When `flatten_deep_query_parameters` is `true`, Scramble will document the parameter like so:
+     * `{"name":"foo[bar]", "schema":{"type":"int"}, "required":true}`.
+     *
+     * When `flatten_deep_query_parameters` is `false`, Scramble will document the parameter like so:
+     *  `{"name":"foo", "schema": {"type":"object", "properties":{"bar":{"type": "int"}}, "required": ["bar"]}, "required":true}`.
+     */
+    'flatten_deep_query_parameters' => true,
+
+    'middleware' => [
         'web',
-        // Only add RestrictedDocsAccess if SCRAMBLE_RESTRICTED is set to true
-        env('SCRAMBLE_RESTRICTED', false) ? RestrictedDocsAccess::class : null,
-    ]),
+       
+    ],
 
     'extensions' => [],
 ];
