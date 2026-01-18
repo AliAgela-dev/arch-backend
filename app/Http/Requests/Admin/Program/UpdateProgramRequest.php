@@ -21,9 +21,11 @@ class UpdateProgramRequest extends FormRequest
      */
     public function rules(): array
     {
+        $id = $this->route('program') ?? $this->route('id');
+        
         return [
             'faculty_id' => 'sometimes|exists:faculties,id',
-            'code' => 'sometimes|string|unique:programs,code,' . $this->route('program')->id . '|max:255',
+            'code' => 'sometimes|string|unique:programs,code,' . $id . '|max:255',
             'name_ar' => 'sometimes|string|max:255',
             'name_en' => 'sometimes|string|max:255',
             'status' => 'sometimes|in:active,inactive',

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\User;
+namespace App\Http\Controllers\Admin\User;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Requests\User\UserStoreRequest;
 use App\Http\Requests\User\UserUpdateRequest;
 use App\Http\Resources\User\UserResource;
@@ -11,13 +11,15 @@ use Illuminate\Http\Request;
 use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-class UserController extends Controller
+class UserController extends AdminController
 {
     use AuthorizesRequests;
+
     public function __construct()
     {
         $this->authorizeResource(User::class, 'user');
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -34,6 +36,7 @@ class UserController extends Controller
             ->allowedSorts(['name', 'email', 'created_at'])
             ->paginate(10)
             ->withQueryString();
+
         return UserResource::collection($users);
     }
 
@@ -47,9 +50,8 @@ class UserController extends Controller
         $user->assignRoleWithHierarchy($data['role']);
         $user->refresh();
         $user->load('roles');
-        return (new UserResource($user))->additional([
-            'message' => 'User created successfully.'
-        ])->response()->setStatusCode(201);
+
+        return $this->resource(new UserResource($user), 'User created successfully.', 201);
     }
 
     /**
@@ -57,7 +59,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return (new UserResource($user));
+        return new UserResource($user);
     }
 
     /**
@@ -75,9 +77,7 @@ class UserController extends Controller
         $user->refresh();
         $user->load('roles');
 
-        return (new UserResource($user))->additional([
-            'message' => 'User updated successfully.'
-        ]);
+        return $this->resource(new UserResource($user), 'User updated successfully.');
     }
 
     /**
@@ -86,8 +86,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
-        return response()->json([
-            'message' => 'User deleted successfully.'
-        ]);
+
+        return $this->success(null, 'User deleted successfully.');
     }
 }

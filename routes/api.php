@@ -1,32 +1,23 @@
 <?php
 
-use App\Http\Controllers\auth\AuthController;
-use App\Http\Controllers\User\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\RoomController;
-use App\Http\Controllers\Api\CabinetController;
-use App\Http\Controllers\Api\DrawerController;
-use App\Http\Controllers\Admin\FacultyController;
-use App\Http\Controllers\Admin\ProgramController;
 
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application.
+| All routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group.
+|
+*/
+
+// Current user (authenticated)
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-
-
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('users', UserController::class);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::apiResource('faculties', FacultyController::class);
-    Route::post('faculties/{id}/restore', [FacultyController::class, 'restore']);
-    Route::apiResource('programs', ProgramController::class);
-    Route::post('programs/{id}/restore', [ProgramController::class, 'restore']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::apiResource('rooms', RoomController::class);
-    Route::apiResource('cabinets', CabinetController::class);
-    Route::apiResource('drawers', DrawerController::class);
-});
-
+// API V1 Routes
+Route::prefix('v1')->group(base_path('routes/api/v1.php'));
