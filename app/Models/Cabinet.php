@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use App\Enums\Status;
 
 class Cabinet extends Model
 {
+    use HasFactory;
     // Fixed number of drawers each cabinet should have.
     public const DRAWER_COUNT = 4;
 
