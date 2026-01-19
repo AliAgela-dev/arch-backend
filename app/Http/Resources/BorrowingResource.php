@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,11 +21,7 @@ class BorrowingResource extends JsonResource
             'status_label' => $this->getStatusLabel(),
             
             // Relationships
-            'user' => [
-                'id' => $this->user->id,
-                'name' => $this->user->name,
-                'email' => $this->user->email,
-            ],
+            'user' => new UserResource($this->whenLoaded('user')),
             'student_document' => new StudentDocumentResource($this->whenLoaded('studentDocument')),
             
             // Timestamps
