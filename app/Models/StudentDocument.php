@@ -57,4 +57,31 @@ class StudentDocument extends Model implements HasMedia
     {
         return $query->where('file_status', FileStatus::DRAFT);
     }
+
+    /**
+     * All borrowing records for this document.
+     * Part of Borrowing System module - isolated feature.
+     */
+    public function borrowings()
+    {
+        return $this->hasMany(Borrowing::class);
+    }
+
+    /**
+     * Get the current active borrowing (if any).
+     */
+    public function currentBorrowing()
+    {
+        return $this->hasOne(Borrowing::class)
+            ->whereIn('status', ['approved', 'borrowed'])
+            ->latest();
+    }
+
+    /**
+     * Check if document is currently borrowed.
+     */
+    public function isBorrowed(): bool
+    {
+        return $this->currentBorrowing()->exists();
+    }
 }

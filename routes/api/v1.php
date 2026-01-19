@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Auth\AuthController;
+use App\Http\Controllers\Admin\Borrowing\BorrowingController;
 use App\Http\Controllers\Admin\Location\CabinetController;
 use App\Http\Controllers\Admin\Location\DrawerController;
 use App\Http\Controllers\Admin\Academic\FacultyController;
@@ -54,6 +55,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('students', StudentController::class);
     Route::apiResource('student-documents', StudentDocumentController::class);
     Route::apiResource('document-types', DocumentTypeController::class);
+
+    // Borrowing System
+    Route::prefix('borrowings')->group(function () {
+        Route::get('/', [BorrowingController::class, 'index']);
+        Route::post('/', [BorrowingController::class, 'store']);
+        Route::get('/{id}', [BorrowingController::class, 'show']);
+        Route::patch('/{id}', [BorrowingController::class, 'update']);
+        Route::delete('/{id}', [BorrowingController::class, 'destroy']);
+        
+        // Special workflow actions
+        Route::post('/{id}/approve', [BorrowingController::class, 'approve']);
+        Route::post('/{id}/mark-borrowed', [BorrowingController::class, 'markBorrowed']);
+        Route::post('/{id}/return', [BorrowingController::class, 'return']);
+    });
 
     // Temp Uploads
     Route::post('uploads', [TempUploadController::class, 'store']);

@@ -27,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register Borrowing System Policy
+        \Illuminate\Support\Facades\Gate::policy(
+            \App\Models\Borrowing::class,
+            \App\Policies\BorrowingPolicy::class
+        );
     }
 }

@@ -74,4 +74,13 @@ class User extends Authenticatable
         };
         $this->syncRoles($rolesToSync);
     }
+
+    /**
+     * Borrowings created by this user.
+     * Part of Borrowing System module - isolated feature.
+     */
+    public function borrowings()
+    {
+        return $this->hasMany(Borrowing::class);
+    }
 }
