@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
+/**
+ * @tags Cabinets
+ */
 class CabinetController extends AdminController
 {
     /**

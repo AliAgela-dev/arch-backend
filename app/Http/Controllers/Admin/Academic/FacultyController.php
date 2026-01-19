@@ -10,6 +10,9 @@ use App\Models\Faculty;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
+/**
+ * @tags Faculty 
+ */
 class FacultyController extends AdminController
 {
     /**
