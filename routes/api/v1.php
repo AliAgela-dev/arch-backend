@@ -55,6 +55,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('student-documents', StudentDocumentController::class);
     Route::apiResource('document-types', DocumentTypeController::class);
 
+    // Borrowing System
+    Route::prefix('borrowings')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'store']);
+        Route::get('/{id}', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'show']);
+        Route::patch('/{id}', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'update']);
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'destroy']);
+        
+        // Special workflow actions
+        Route::post('/{id}/approve', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'approve']);
+        Route::post('/{id}/mark-borrowed', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'markBorrowed']);
+        Route::post('/{id}/return', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'return']);
+    });
+
     // Temp Uploads
     Route::post('uploads', [TempUploadController::class, 'store']);
     Route::delete('uploads/{id}', [TempUploadController::class, 'destroy']);
