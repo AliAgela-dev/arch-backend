@@ -10,6 +10,9 @@ use App\Models\Program;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
+/**
+ * @tags Programs
+ */
 class ProgramController extends AdminController
 {
     /**

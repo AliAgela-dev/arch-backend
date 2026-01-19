@@ -10,6 +10,9 @@ use App\Models\Drawer;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
+/**
+ * @tags Drawers
+ */
 class DrawerController extends AdminController
 {
     /**

@@ -8,6 +8,9 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Request;
 
+/**
+ * @tags Auth
+ */
 class AuthController extends AdminController
 {
     /**

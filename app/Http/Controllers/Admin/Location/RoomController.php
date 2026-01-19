@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
+/**
+ * @tags Rooms
+ */
 class RoomController extends AdminController
 {
     /**

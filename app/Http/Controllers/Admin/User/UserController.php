@@ -11,6 +11,9 @@ use Illuminate\Http\Request;
 use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
+/**
+ * @tags Users Managment
+ */
 class UserController extends AdminController
 {
     use AuthorizesRequests;

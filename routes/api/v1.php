@@ -7,6 +7,10 @@ use App\Http\Controllers\Admin\Academic\FacultyController;
 use App\Http\Controllers\Admin\Academic\ProgramController;
 use App\Http\Controllers\Admin\Location\RoomController;
 use App\Http\Controllers\Admin\User\UserController;
+use App\Http\Controllers\Admin\Student\DocumentTypeController;
+use App\Http\Controllers\Admin\Student\StudentController;
+use App\Http\Controllers\Admin\Student\StudentDocumentController;
+use App\Http\Controllers\Admin\Upload\TempUploadController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,4 +49,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('cabinets', CabinetController::class);
         Route::apiResource('drawers', DrawerController::class);
     });
+
+    // Students
+    Route::apiResource('students', StudentController::class);
+    Route::apiResource('student-documents', StudentDocumentController::class);
+    Route::apiResource('document-types', DocumentTypeController::class);
+
+    // Temp Uploads
+    Route::post('uploads', [TempUploadController::class, 'store']);
+    Route::delete('uploads/{id}', [TempUploadController::class, 'destroy']);
 });
+
