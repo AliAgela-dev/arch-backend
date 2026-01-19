@@ -134,7 +134,7 @@ class Borrowing extends Model
             return 0;
         }
 
-        return (int) now()->diffInDays($this->due_date);
+        return abs((int) now()->diffInDays($this->due_date, false));
     }
 
     /**
