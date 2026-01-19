@@ -11,6 +11,7 @@ use App\Http\Requests\Borrowing\StoreBorrowingRequest;
 use App\Http\Resources\BorrowingResource;
 use App\Models\Borrowing;
 use App\Models\StudentDocument;
+use App\Services\BorrowingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -21,6 +22,10 @@ use Spatie\QueryBuilder\QueryBuilder;
  */
 class BorrowingController extends AdminController
 {
+    public function __construct(protected BorrowingService $borrowingService)
+    {
+    }
+
     /**
      * Display a listing of borrowings.
      */
@@ -155,33 +160,18 @@ class BorrowingController extends AdminController
 
         $validated = $request->validated();
 
-        DB::transaction(function () use ($borrowing, $validated) {
-            if ($validated['action'] === 'approve') {
-                // Calculate due date
-                $dueDays = $validated['due_days'] ?? config('borrowing.default_duration_days', 14);
-                
-                $borrowing->update([
-                    'status' => BorrowingStatus::APPROVED,
-                    'approved_at' => now(),
-                    'due_date' => now()->addDays($dueDays),
-                    'admin_notes' => $validated['admin_notes'] ?? null,
-                ]);
-            } else {
-                // Reject
-                $borrowing->update([
-                    'status' => BorrowingStatus::REJECTED,
-                    'rejected_at' => now(),
-                    'rejection_reason' => $validated['rejection_reason'],
-                    'admin_notes' => $validated['admin_notes'] ?? null,
-                ]);
-            }
-        });
+        // Delegate to service
+        if ($validated['action'] === 'approve') {
+            $borrowing = $this->borrowingService->approveBorrowing($borrowing, $validated);
+            $message = 'Borrowing request approved successfully';
+        } else {
+            $borrowing = $this->borrowingService->rejectBorrowing($borrowing, $validated);
+            $message = 'Borrowing request rejected';
+        }
 
         return $this->resource(
-            new BorrowingResource($borrowing->fresh()->load(['user', 'studentDocument'])),
-            $validated['action'] === 'approve' 
-                ? 'Borrowing request approved successfully' 
-                : 'Borrowing request rejected'
+            new BorrowingResource($borrowing->load(['user', 'studentDocument'])),
+            $message
         );
     }
 
