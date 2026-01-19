@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Auth\AuthController;
+use App\Http\Controllers\Admin\Borrowing\BorrowingController;
 use App\Http\Controllers\Admin\Location\CabinetController;
 use App\Http\Controllers\Admin\Location\DrawerController;
 use App\Http\Controllers\Admin\Academic\FacultyController;
@@ -57,16 +58,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Borrowing System
     Route::prefix('borrowings')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'index']);
-        Route::post('/', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'store']);
-        Route::get('/{id}', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'show']);
-        Route::patch('/{id}', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'update']);
-        Route::delete('/{id}', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'destroy']);
+        Route::get('/', [BorrowingController::class, 'index']);
+        Route::post('/', [BorrowingController::class, 'store']);
+        Route::get('/{id}', [BorrowingController::class, 'show']);
+        Route::patch('/{id}', [BorrowingController::class, 'update']);
+        Route::delete('/{id}', [BorrowingController::class, 'destroy']);
         
         // Special workflow actions
-        Route::post('/{id}/approve', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'approve']);
-        Route::post('/{id}/mark-borrowed', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'markBorrowed']);
-        Route::post('/{id}/return', [\App\Http\Controllers\Admin\Borrowing\BorrowingController::class, 'return']);
+        Route::post('/{id}/approve', [BorrowingController::class, 'approve']);
+        Route::post('/{id}/mark-borrowed', [BorrowingController::class, 'markBorrowed']);
+        Route::post('/{id}/return', [BorrowingController::class, 'return']);
     });
 
     // Temp Uploads
