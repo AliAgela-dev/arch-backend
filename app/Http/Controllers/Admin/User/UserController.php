@@ -49,10 +49,14 @@ class UserController extends AdminController
     public function store(UserStoreRequest $request)
     {
         $data = $request->validated();
+        $faculties = $data['faculties'];
+        unset($data['faculties']);
+        
         $user = User::create($data);
         $user->assignRoleWithHierarchy($data['role']);
+        $user->faculties()->attach($faculties);
         $user->refresh();
-        $user->load('roles');
+        $user->load(['roles', 'faculties']);
 
         return $this->resource(new UserResource($user), 'User created successfully.', 201);
     }
@@ -71,6 +75,13 @@ class UserController extends AdminController
     public function update(UserUpdateRequest $request, User $user)
     {
         $data = $request->validated();
+        
+        if (isset($data['faculties'])) {
+            $faculties = $data['faculties'];
+            unset($data['faculties']);
+            $user->faculties()->sync($faculties);
+        }
+        
         $user->update($data);
 
         if (isset($data['role'])) {
@@ -78,7 +89,7 @@ class UserController extends AdminController
         }
 
         $user->refresh();
-        $user->load('roles');
+        $user->load(['roles', 'faculties']);
 
         return $this->resource(new UserResource($user), 'User updated successfully.');
     }
