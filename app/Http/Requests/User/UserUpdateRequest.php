@@ -38,6 +38,8 @@ class UserUpdateRequest extends FormRequest
             'password_confirmation' => ['required', 'string'],
             'role' => ['nullable', 'string', Rule::enum(UserRole::class)],
             'status' => ['nullable', 'string', Rule::enum(UserStatus::class)],
+            'faculties' => ['nullable', 'array', 'min:1'],
+            'faculties.*' => ['required', 'integer', 'exists:faculties,id'],
         ];
     }
     public function messages(): array
@@ -64,6 +66,12 @@ class UserUpdateRequest extends FormRequest
 
             'status.string' => 'Status must be a string.',
             'status.enum' => 'Status must be a valid status.',
+
+            'faculties.array' => 'Faculties must be an array.',
+            'faculties.min' => 'At least one faculty is required.',
+            'faculties.*.required' => 'Faculty ID is required.',
+            'faculties.*.integer' => 'Faculty ID must be an integer.',
+            'faculties.*.exists' => 'Selected faculty does not exist.',
         ];
     }
 }

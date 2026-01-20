@@ -31,6 +31,7 @@ class User extends Authenticatable
         'password',
         'status',
         'last_login',
+       
     ];
 
     /**
@@ -83,4 +84,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Borrowing::class);
     }
+    public function faculties()
+    {
+        return $this->belongsToMany(Faculty::class); 
+
+    } //added these again
 }
