@@ -35,7 +35,7 @@ class UserUpdateRequest extends FormRequest
                 'ends_with:@limu.edu.ly'
             ],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'password_confirmation' => ['nullable', 'string'],
+            'password_confirmation' => ['required', 'string'],
             'role' => ['nullable', 'string', Rule::enum(UserRole::class)],
             'status' => ['nullable', 'string', Rule::enum(UserStatus::class)],
             'faculties' => ['nullable', 'array', 'min:1'],
