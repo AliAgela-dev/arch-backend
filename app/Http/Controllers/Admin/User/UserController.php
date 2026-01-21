@@ -8,6 +8,7 @@ use App\Http\Requests\User\UserUpdateRequest;
 use App\Http\Resources\User\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
@@ -31,11 +32,20 @@ class UserController extends AdminController
         $request->validate([
             'filter.name' => ['sometimes', 'string', 'max:255'],
             'filter.email' => ['sometimes', 'string', 'email', 'max:255'],
+            'filter.status' => ['sometimes', 'string', 'max:255'],
+            'filter.role' => ['sometimes', 'string', 'max:255'],
+            'filter.faculty' => ['sometimes', 'integer'],
             'sort' => ['sometimes', 'string', 'in:name,email,created_at,-name,-email,-created_at'],
         ]);
 
         $users = QueryBuilder::for(User::class)
-            ->allowedFilters(['name', 'email'])
+            ->allowedFilters([
+                'name',
+                'email',
+                'status',
+                AllowedFilter::scope('role'),
+                AllowedFilter::exact('faculty', 'faculties.id'),
+            ])
             ->allowedSorts(['name', 'email', 'created_at'])
             ->paginate(10)
             ->withQueryString();
@@ -51,7 +61,7 @@ class UserController extends AdminController
         $data = $request->validated();
         $faculties = $data['faculties'];
         unset($data['faculties']);
-        
+
         $user = User::create($data);
         $user->assignRoleWithHierarchy($data['role']);
         $user->faculties()->attach($faculties);
@@ -75,13 +85,13 @@ class UserController extends AdminController
     public function update(UserUpdateRequest $request, User $user)
     {
         $data = $request->validated();
-        
+
         if (isset($data['faculties'])) {
             $faculties = $data['faculties'];
             unset($data['faculties']);
             $user->faculties()->sync($faculties);
         }
-        
+
         $user->update($data);
 
         if (isset($data['role'])) {
