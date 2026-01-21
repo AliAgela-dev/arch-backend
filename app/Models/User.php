@@ -86,7 +86,7 @@ class User extends Authenticatable
     }
     public function faculties()
     {
-        return $this->belongsToMany(Faculty::class); 
+        return $this->belongsToMany(Faculty::class , 'user_faculties'); 
 
     } //added these again
 }
