@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Jobs\ProcessDocumentOcrJob;
+use App\Models\StudentDocument;
 use App\Models\TempUpload;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -19,6 +21,7 @@ class MediaAssignmentService
     public function assign(HasMedia $model, string|array $tempUploadIds, string $collection = 'default'): void
     {
         $ids = is_array($tempUploadIds) ? $tempUploadIds : [$tempUploadIds];
+        $mediaAttached = false;
 
         foreach ($ids as $tempUploadId) {
             $tempUpload = TempUpload::notExpired()->find($tempUploadId);
@@ -32,10 +35,16 @@ class MediaAssignmentService
             if ($media) {
                 // Copy media to target model
                 $media->copy($model, $collection);
+                $mediaAttached = true;
             }
 
             // Delete temp upload and its media
             $tempUpload->delete();
+        }
+
+        // Dispatch OCR job if media was attached to a StudentDocument
+        if ($mediaAttached && $model instanceof StudentDocument) {
+            ProcessDocumentOcrJob::dispatch($model);
         }
     }
 
