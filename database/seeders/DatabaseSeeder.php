@@ -27,8 +27,13 @@ class DatabaseSeeder extends Seeder
         ]);
         $user->assignRole(UserRole::super_admin);
         $this->call([
+            DocumentTypeSeeder::class,
             FacultySeeder::class,
             ProgramSeeder::class,
+            RoomSeeder::class,
+            StudentSeeder::class,
+            StudentDocumentSeeder::class,
+            BorrowingSeeder::class,
         ]);
        
 
