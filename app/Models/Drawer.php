@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,8 @@ use App\Enums\Status;
 
 class Drawer extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
+
     protected $fillable = [
         'id',
         'cabinet_id',
@@ -30,14 +32,6 @@ class Drawer extends Model
     public function cabinet(): BelongsTo
     {
         return $this->belongsTo(Cabinet::class, 'cabinet_id', 'id');
-    }
-
-    protected static function booted()
-    {
-        // Our IDs are UUID strings, so we generate them at creation time.
-        static::creating(function ($model) {
-            $model->id = $model->id ?? (string) Str::uuid();
-        });
     }
 
     public function usagePercent(int $current_count = 0): int

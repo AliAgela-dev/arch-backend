@@ -110,12 +110,15 @@ class UserTest extends TestCase
 
     public function test_can_create_user(): void
     {
+        $faculty = \App\Models\Faculty::factory()->create();
+
         $data = [
             'name' => 'New User',
             'email' => 'newuser@limu.edu.ly',
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'role' => 'archivist',
+            'faculties' => [$faculty->id],
         ];
 
         $response = $this->postJson('/api/v1/users', $data);
@@ -132,13 +135,14 @@ class UserTest extends TestCase
         $response = $this->postJson('/api/v1/users', []);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['name', 'email', 'password', 'role']);
+            ->assertJsonValidationErrors(['name', 'email', 'password', 'role', 'faculties']);
     }
 
     public function test_create_user_validates_unique_email(): void
     {
         // Create user with valid email domain
         User::factory()->create(['email' => 'existing@limu.edu.ly']);
+        $faculty = \App\Models\Faculty::factory()->create();
 
         $data = [
             'name' => 'New User',
@@ -146,6 +150,7 @@ class UserTest extends TestCase
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'role' => 'archivist',
+            'faculties' => [$faculty->id],
         ];
 
         $response = $this->postJson('/api/v1/users', $data);
@@ -156,12 +161,15 @@ class UserTest extends TestCase
 
     public function test_user_role_is_assigned_on_create(): void
     {
+        $faculty = \App\Models\Faculty::factory()->create();
+        
         $data = [
             'name' => 'Archivist User',
             'email' => 'archivist@limu.edu.ly',
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'role' => 'archivist',
+            'faculties' => [$faculty->id],
         ];
 
         $response = $this->postJson('/api/v1/users', $data);
