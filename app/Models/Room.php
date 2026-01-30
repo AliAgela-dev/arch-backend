@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -9,7 +10,8 @@ use App\Enums\Status;
 
 class Room extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
+
     protected $fillable = [
         'id',
         'name',
@@ -30,11 +32,4 @@ class Room extends Model
 
     protected $keyType = 'string';
     public $incrementing = false;
-
-    protected static function booted()
-    {
-        static::creating(function ($model) {
-            $model->id = $model->id ?? (string) Str::uuid();
-        });
-    }
 }

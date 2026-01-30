@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -9,7 +10,7 @@ use App\Enums\Status;
 
 class Cabinet extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
     // Fixed number of drawers each cabinet should have.
     public const DRAWER_COUNT = 4;
 
@@ -38,13 +39,4 @@ class Cabinet extends Model
 
     protected $keyType = 'string';
     public $incrementing = false;
-
-    protected static function booted()
-    {
-        static::creating(function ($model) {
-            $model->id = $model->id ?? (string) Str::uuid();
-        });
-    }
-
-   
 }
