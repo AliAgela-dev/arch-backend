@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\Student\DocumentTypeController;
 use App\Http\Controllers\Admin\Student\StudentController;
 use App\Http\Controllers\Admin\Student\StudentDocumentController;
 use App\Http\Controllers\Admin\Upload\TempUploadController;
+use App\Http\Controllers\FacultyStaff\Dashboard\DashboardController as FacultyStaffDashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,6 +33,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Dashboard (admin only)
     Route::get('dashboard', [DashboardController::class, 'index']);
+    
+    // FacultyStaff Dashboard
+    Route::get('faculty-staff/dashboard', [FacultyStaffDashboardController::class, 'index']);
 
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
