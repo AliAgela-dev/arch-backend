@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Auth\AuthController;
 use App\Http\Controllers\Admin\Borrowing\BorrowingController;
+use App\Http\Controllers\Admin\Dashboard\DashboardController;
 use App\Http\Controllers\Admin\Location\CabinetController;
 use App\Http\Controllers\Admin\Location\DrawerController;
 use App\Http\Controllers\Admin\Academic\FacultyController;
@@ -28,6 +29,9 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
+
+    // Dashboard (admin only)
+    Route::get('dashboard', [DashboardController::class, 'index']);
 
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
