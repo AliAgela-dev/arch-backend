@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Auth\AuthController;
 use App\Http\Controllers\Admin\Borrowing\BorrowingController;
+use App\Http\Controllers\Admin\Dashboard\ArchivistDashboardController;
 use App\Http\Controllers\Admin\Dashboard\DashboardController;
 use App\Http\Controllers\Admin\Location\CabinetController;
 use App\Http\Controllers\Admin\Location\DrawerController;
@@ -32,6 +33,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Dashboard (admin only)
     Route::get('dashboard', [DashboardController::class, 'index']);
+
+    // Archivist Dashboard
+    Route::get('dashboard/archivist', [ArchivistDashboardController::class, 'index']);
 
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
