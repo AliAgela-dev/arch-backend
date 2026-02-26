@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Document Parsing Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the OCR document parsing system.
+    | Paths to external binaries should be set in .env file.
+    |
+    */
+
+    'document_parsing' => [
+        'tesseract_path' => env('TESSERACT_PATH', 'C:/Program Files/Tesseract-OCR/tesseract.exe'),
+        'pdftotext_path' => env('PDFTOTEXT_PATH', 'C:/xpdf/bin64/pdftotext.exe'),
+        'pdftoppm_path' => env('PDFTOPPM_PATH', 'C:/poppler/bin/pdftoppm.exe'),
+        'temp_directory' => storage_path('app/ocr_temp'),
+    ],
+
 ];

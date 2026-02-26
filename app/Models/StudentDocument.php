@@ -84,4 +84,12 @@ class StudentDocument extends Model implements HasMedia
     {
         return $this->currentBorrowing()->exists();
     }
+
+    /**
+     * Get the extracted text record for this document.
+     */
+    public function documentText()
+    {
+        return $this->hasOne(DocumentText::class);
+    }
 }
