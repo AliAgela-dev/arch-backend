@@ -46,10 +46,10 @@ return [
     */
 
     'document_parsing' => [
-        'tesseract_path' => env('TESSERACT_PATH', 'C:/Program Files/Tesseract-OCR/tesseract.exe'),
-        'pdftotext_path' => env('PDFTOTEXT_PATH', 'C:/xpdf/bin64/pdftotext.exe'),
-        'pdftoppm_path' => env('PDFTOPPM_PATH', 'C:/poppler/bin/pdftoppm.exe'),
-        'temp_directory' => storage_path('app/ocr_temp'),
+        'tesseract_path' => env('TESSERACT_PATH', '/usr/bin/tesseract'),
+        'pdftotext_path' => env('PDFTOTEXT_PATH', '/usr/bin/pdftotext'),
+        'pdftoppm_path' => env('PDFTOPPM_PATH', '/usr/bin/pdftoppm'),
+        'temp_directory' => env('OCR_TEMP_DIRECTORY', storage_path('app/ocr_temp')),
     ],
 
 ];
