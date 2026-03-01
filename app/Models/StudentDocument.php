@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\FileStatus;
+use App\Enums\Pipeline\PipelineStatus;
+use App\Traits\HasPipelineStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,19 +13,22 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class StudentDocument extends Model implements HasMedia
 {
-    use HasFactory, HasUuids, InteractsWithMedia;
+    use HasFactory, HasUuids, InteractsWithMedia, HasPipelineStatus;
 
     protected $fillable = [
         'student_id',
         'document_type_id',
         'file_number',
         'file_status',
+        'pipeline_status',
+        'pipeline_error',
         'notes',
         'submitted_at',
     ];
 
     protected $casts = [
         'file_status' => FileStatus::class,
+        'pipeline_status' => PipelineStatus::class,
         'submitted_at' => 'datetime',
     ];
 
@@ -87,9 +92,36 @@ class StudentDocument extends Model implements HasMedia
 
     /**
      * Get the extracted text record for this document.
+     * @deprecated Will be removed after document_texts table is dropped.
      */
     public function documentText()
     {
         return $this->hasOne(DocumentText::class);
+    }
+
+    /**
+     * Per-page OCR content records, ordered by page number.
+     */
+    public function documentContents()
+    {
+        return $this->hasMany(DocumentContent::class)->orderBy('page_number');
+    }
+
+    /**
+     * AI refinement result (one per document).
+     */
+    public function refinement()
+    {
+        return $this->hasOne(DocumentRefinement::class);
+    }
+
+    /**
+     * Concatenate all page contents into a single text block.
+     */
+    public function getFullExtractedText(): string
+    {
+        return $this->documentContents
+            ->pluck('content')
+            ->implode("\n\n");
     }
 }
