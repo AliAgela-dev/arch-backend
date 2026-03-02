@@ -73,7 +73,7 @@ class RefinementData
      */
     public function isHighConfidence(): bool
     {
-        return $this->confidence >= config('services.pipeline.confidence_threshold', 85);
+        return $this->confidence >= config('ai.pipeline.confidence_threshold', 85);
     }
 
     /**
@@ -84,5 +84,63 @@ class RefinementData
         return $this->studentNumber !== null
             && $this->studentName !== null
             && $this->college !== null;
+    }
+
+    /**
+     * Gemini responseJsonSchema definition matching this DTO's structure.
+     *
+     * Available for future use with Gemini's structured output feature
+     * (generationConfig.responseJsonSchema). Not currently wired into
+     * the client — prompt + responseMimeType is sufficient for now.
+     *
+     * The schema lives here because the DTO is the source of truth for
+     * the response structure. When DTO fields change, the schema changes with it.
+     */
+    public static function jsonSchema(): array
+    {
+        return [
+            'type' => 'object',
+            'properties' => [
+                'student_number' => [
+                    'type' => 'string',
+                    'description' => 'Student university number/ID (الرقم الدراسي)',
+                    'nullable' => true,
+                ],
+                'student_name' => [
+                    'type' => 'string',
+                    'description' => 'Student full name, preferring Arabic (الاسم الكامل)',
+                    'nullable' => true,
+                ],
+                'college' => [
+                    'type' => 'string',
+                    'description' => 'College/faculty name (الكلية)',
+                    'nullable' => true,
+                ],
+                'program' => [
+                    'type' => 'string',
+                    'description' => 'Academic program/major name (البرنامج)',
+                    'nullable' => true,
+                ],
+                'document_type' => [
+                    'type' => 'string',
+                    'description' => 'Document type: Passport, National ID, High School Certificate, International High School Certificate, Admission Letter, Enrollment Letter, Birth Certificate, Personal Photo, Equivalency Letter, Medical Certificate',
+                    'nullable' => true,
+                ],
+                'enrollment_date' => [
+                    'type' => 'string',
+                    'description' => 'Enrollment/admission date in YYYY-MM-DD format',
+                    'nullable' => true,
+                ],
+                'confidence' => [
+                    'type' => 'number',
+                    'description' => 'Extraction confidence from 0.0 to 1.0',
+                ],
+                'additional_fields' => [
+                    'type' => 'object',
+                    'description' => 'Any other relevant extracted information',
+                ],
+            ],
+            'required' => ['confidence', 'additional_fields'],
+        ];
     }
 }
