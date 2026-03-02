@@ -22,13 +22,13 @@ class DocumentManager
     }
 
     /**
-     * Parse a document and extract text.
+     * Parse a document and extract text content per page.
      *
      * @param string $path Absolute path to the file
-     * @return string Extracted text
+     * @return array<int, string> Array of [page_number => text_content], 1-indexed
      * @throws RuntimeException If no parser supports the file type
      */
-    public function parse(string $path): string
+    public function parse(string $path): array
     {
         if (!file_exists($path)) {
             throw new RuntimeException("File not found: {$path}");

@@ -8,7 +8,7 @@ use RuntimeException;
 
 class WordParser implements DocumentParserInterface
 {
-    public function parse(string $path): string
+    public function parse(string $path): array
     {
         if (!file_exists($path)) {
             throw new RuntimeException("File not found: {$path}");
@@ -24,7 +24,7 @@ class WordParser implements DocumentParserInterface
                 }
             }
 
-            return trim($text);
+            return [1 => trim($text)]; // Word docs treated as single page
         } catch (\Exception $e) {
             throw new RuntimeException("Failed to parse Word document: " . $e->getMessage());
         }

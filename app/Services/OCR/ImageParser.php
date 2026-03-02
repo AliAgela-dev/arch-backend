@@ -20,7 +20,7 @@ class ImageParser implements DocumentParserInterface
         }
     }
 
-    public function parse(string $path): string
+    public function parse(string $path): array
     {
         if (!file_exists($path)) {
             throw new RuntimeException("File not found: {$path}");
@@ -33,9 +33,9 @@ class ImageParser implements DocumentParserInterface
         $outputBase = $this->tempDirectory . '/' . uniqid('ocr_');
         $outputFile = $outputBase . '.txt';
 
-        // Build Tesseract command
+        // Build Tesseract command with Arabic+English and uniform block mode
         $command = sprintf(
-            '"%s" "%s" "%s" -l eng 2>&1',
+            '"%s" "%s" "%s" -l ara+eng --psm 6 2>&1',
             $this->tesseractPath,
             $path,
             $outputBase
@@ -52,11 +52,11 @@ class ImageParser implements DocumentParserInterface
         }
 
         $text = file_get_contents($outputFile);
-        
+
         // Cleanup
         @unlink($outputFile);
 
-        return trim($text);
+        return [1 => trim($text)]; // Images are always single page
     }
 
     public function supports(string $extension): bool

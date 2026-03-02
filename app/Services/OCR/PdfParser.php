@@ -20,7 +20,7 @@ class PdfParser implements DocumentParserInterface
         }
     }
 
-    public function parse(string $path): string
+    public function parse(string $path): array
     {
         if (!file_exists($path)) {
             throw new RuntimeException("File not found: {$path}");
@@ -31,13 +31,13 @@ class PdfParser implements DocumentParserInterface
 
         // Strip whitespace AND control characters (like form feed \f)
         $cleanText = preg_replace('/[\x00-\x1F\x7F\s]+/', '', $text);
-        
-        // If empty after cleaning, it's a scanned PDF - use OCR
+
+        // If empty after cleaning, it's a scanned PDF - use OCR per page
         if (empty($cleanText)) {
             return $this->handleScannedPdf($path);
         }
 
-        return trim($text);
+        return [1 => trim($text)]; // Text PDFs come as single block
     }
 
     /**
@@ -80,29 +80,31 @@ class PdfParser implements DocumentParserInterface
 
     /**
      * Handle scanned PDFs using pdftoppm + Tesseract OCR pipeline.
-     * 
+     *
      * 1. Convert PDF pages to PNG images using pdftoppm
-     * 2. Run OCR on each image using Tesseract
-     * 3. Combine results and cleanup
+     * 2. Run OCR on each image using Tesseract (Arabic + English)
+     * 3. Return per-page array and cleanup
+     *
+     * @return array<int, string> [page_number => text_content], 1-indexed
      */
-    protected function handleScannedPdf(string $path): string
+    protected function handleScannedPdf(string $path): array
     {
         // 1. Setup paths from config
         $pdftoppmPath = config('services.document_parsing.pdftoppm_path');
         $tesseractPath = config('services.document_parsing.tesseract_path');
-        
+
         if (!file_exists($pdftoppmPath)) {
             throw new RuntimeException("pdftoppm binary not found at: {$pdftoppmPath}");
         }
-        
+
         if (!file_exists($tesseractPath)) {
             throw new RuntimeException("Tesseract binary not found at: {$tesseractPath}");
         }
-        
+
         // Create a unique subfolder for this specific PDF's pages
         $jobId = uniqid('pages_');
         $outputFolder = $this->tempDirectory . '/' . $jobId;
-        
+
         if (!is_dir($outputFolder)) {
             mkdir($outputFolder, 0755, true);
         }
@@ -116,38 +118,39 @@ class PdfParser implements DocumentParserInterface
             $path,
             $outputFolder
         );
-        
+
         exec($pdfToPpmCommand);
 
-        // 3. Loop through the generated images and OCR them
+        // 3. Loop through the generated images and OCR them per page
         $allImages = glob("$outputFolder/*.png");
-        $fullText = "";
+        sort($allImages); // Ensure page order (glob doesn't guarantee it)
+        $pages = [];
 
-        foreach ($allImages as $image) {
+        foreach ($allImages as $index => $image) {
             $outputBase = $image . '_text';
-            
-            // Run Tesseract on the page
+
+            // Run Tesseract with Arabic+English and uniform block mode
             $ocrCommand = sprintf(
-                '"%s" "%s" "%s" -l eng', 
+                '"%s" "%s" "%s" -l ara+eng --psm 6',
                 $tesseractPath,
                 $image,
                 $outputBase
             );
-            
+
             exec($ocrCommand);
-            
+
             $txtFile = $outputBase . '.txt';
             if (file_exists($txtFile)) {
-                $fullText .= file_get_contents($txtFile) . "\n";
-                @unlink($txtFile); // Clean up text file
+                $pages[$index + 1] = trim(file_get_contents($txtFile));
+                @unlink($txtFile);
             }
-            @unlink($image); // Clean up image file
+            @unlink($image);
         }
 
         // 4. Final Cleanup
         @rmdir($outputFolder);
 
-        return trim($fullText);
+        return $pages;
     }
 
     public function supports(string $extension): bool
